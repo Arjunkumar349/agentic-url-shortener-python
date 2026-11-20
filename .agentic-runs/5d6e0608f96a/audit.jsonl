@@ -1,0 +1,5 @@
+{"at": "2026-10-02T16:52:36.670116+00:00", "details": {"artifact_count": 0, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "understand"}
+{"at": "2026-10-02T16:52:36.670116+00:00", "details": {"artifact_count": 0, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "decompose"}
+{"at": "2026-10-02T16:52:36.670116+00:00", "details": {"artifact_count": 0, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "design"}
+{"at": "2026-10-02T16:52:36.670116+00:00", "details": {}, "event": "approval_requested", "task": "design_approval"}
+{"at": "2026-10-02T16:52:36.670116+00:00", "details": {}, "event": "workflow_paused", "task": "design_approval"}

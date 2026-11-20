@@ -1,0 +1,13 @@
+{"at": "2026-10-02T16:47:35.750840+00:00", "details": {"artifact_count": 0, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "understand"}
+{"at": "2026-10-02T16:47:35.750840+00:00", "details": {"artifact_count": 0, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "decompose"}
+{"at": "2026-10-02T16:47:35.750840+00:00", "details": {"artifact_count": 0, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "design"}
+{"at": "2026-10-02T16:47:35.750840+00:00", "details": {}, "event": "approval_requested", "task": "design_approval"}
+{"at": "2026-10-02T16:47:35.750840+00:00", "details": {}, "event": "approval_granted", "task": "design_approval"}
+{"at": "2026-10-02T16:47:35.767314+00:00", "details": {"artifact_count": 5, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "implement"}
+{"at": "2026-10-02T16:47:35.782479+00:00", "details": {"artifact_count": 0, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "unit_validation"}
+{"at": "2026-10-02T16:47:35.782479+00:00", "details": {"artifact_count": 1, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "documentation"}
+{"at": "2026-10-02T16:47:35.798460+00:00", "details": {"artifact_count": 0, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "integration_validation"}
+{"at": "2026-10-02T16:47:35.798460+00:00", "details": {}, "event": "approval_requested", "task": "release_approval"}
+{"at": "2026-10-02T16:47:35.798460+00:00", "details": {}, "event": "approval_granted", "task": "release_approval"}
+{"at": "2026-10-02T16:47:35.798460+00:00", "details": {"artifact_count": 2, "attempts": 1, "fallback_used": false, "recovery_seconds": null}, "event": "task_succeeded", "task": "release_readiness"}
+{"at": "2026-10-02T16:47:35.798460+00:00", "details": {}, "event": "workflow_completed", "task": null}

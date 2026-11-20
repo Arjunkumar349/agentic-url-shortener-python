@@ -1,0 +1,108 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "URL Shortener API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000"
+    }
+  ],
+  "paths": {
+    "/api/urls": {
+      "post": {
+        "summary": "Create a short URL",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url"],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "maxLength": 2048,
+                    "pattern": "^https?://"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Short URL created"
+          },
+          "400": {
+            "description": "Invalid URL or request body"
+          },
+          "503": {
+            "description": "Storage temporarily unavailable"
+          }
+        }
+      }
+    },
+    "/{code}": {
+      "get": {
+        "summary": "Redirect and record a click",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to the stored destination"
+          },
+          "404": {
+            "description": "Short URL not found"
+          }
+        }
+      }
+    },
+    "/api/urls/{code}/stats": {
+      "get": {
+        "summary": "Read click analytics for a short URL",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Click count and timestamps"
+          },
+          "404": {
+            "description": "Short URL not found"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Check service health",
+        "responses": {
+          "200": {
+            "description": "Service is accepting requests"
+          }
+        }
+      }
+    }
+  }
+}

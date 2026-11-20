@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Developer Guide | Agentic SDLC Prototype</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.6;
+      color: #172033;
+      background: #f4f7fb;
+    }
+    body { max-width: 1080px; margin: 0 auto; padding: 2rem; }
+    main { background: #fff; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 24px #17203312; }
+    h1, h2, h3 { line-height: 1.25; color: #12335b; }
+    h1 { margin-top: 0; font-size: 2.2rem; }
+    h2 { margin-top: 2.2rem; border-bottom: 1px solid #dbe4ef; padding-bottom: .4rem; }
+    a { color: #075eb5; }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+    code { background: #eef3f8; padding: .12rem .3rem; border-radius: 4px; }
+    pre { overflow-x: auto; padding: 1rem; background: #14243a; color: #f3f7fc; border-radius: 8px; }
+    pre code { background: transparent; padding: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { padding: .65rem; text-align: left; vertical-align: top; border: 1px solid #dbe4ef; }
+    th { background: #edf3f9; }
+    .note { padding: 1rem; border-left: 4px solid #2674c8; background: #eef6ff; }
+    .warning { padding: 1rem; border-left: 4px solid #c57b00; background: #fff7e5; }
+    nav ol { columns: 2; padding-left: 1.5rem; }
+    nav li { margin: .25rem 0; }
+    footer { margin-top: 2rem; color: #566579; font-size: .9rem; }
+    @media (max-width: 680px) {
+      body { padding: .5rem; }
+      main { padding: 1.2rem; }
+      nav ol { columns: 1; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>New Developer Guide</h1>
+    <p><strong>Agentic SDLC Prototype and URL Shortener</strong></p>
+    <p>This guide explains what the project does, how to read its requirements and code, how its workflow runs, and how to try each scenario and the URL shortener itself. It is written for a developer opening the workspace for the first time.</p>
+  </header>
+
+  <nav aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#purpose">Purpose and mental model</a></li>
+      <li><a href="#requirements">Understand the requirements</a></li>
+      <li><a href="#layout">Find your way around the code</a></li>
+      <li><a href="#workflow">Understand the execution model</a></li>
+      <li><a href="#setup">Set up and run tests</a></li>
+      <li><a href="#scenarios">Run the three workflow scenarios</a></li>
+      <li><a href="#service">Run and use the URL shortener</a></li>
+      <li><a href="#outputs">Read a workflow run's outputs</a></li>
+      <li><a href="#change">Make a change safely</a></li>
+      <li><a href="#limits">Know the boundaries</a></li>
+    </ol>
+  </nav>
+
+  <section id="purpose">
+    <h2>1. Purpose and mental model</h2>
+    <p>This repository contains two related pieces:</p>
+    <ol>
+      <li><strong>A small URL shortener service</strong> that a developer can run locally. It creates short links, redirects requests, and records click totals in SQLite.</li>
+      <li><strong>A governed SDLC workflow prototype</strong> that takes one of three fixed requirements (greenfield, brownfield, or ambiguous) and creates a traceable, run-scoped engineering proposal with approvals, validation, documentation, and a release summary.</li>
+    </ol>
+    <p>The workflow engine is the main demonstration of agentic-style coordination. The scenario handlers in this version are deterministic Python fixtures: they do not call Copilot, Claude, an LLM, or an external service. For the greenfield case, the implementation stage packages the checked-in URL-shortener source, tests, and API schema into the run's artifacts. It does not modify your working source tree.</p>
+    <p class="note"><strong>Important distinction:</strong> successfully completing a workflow means the workflow stages completed. It does not mean the service was deployed or is production-ready. The summary deliberately reports “review_ready_not_deployed” for a well-defined scenario, and “blocked_pending_clarification” for the ambiguous one.</p>
+  </section>
+
+  <section id="requirements">
+    <h2>2. Understand the requirements before coding</h2>
+    <p>Start with <a href="systemcontext.ini">systemcontext.ini</a>. It describes the overall assignment: transform a requirement into reviewable engineering work, reason about brownfield code, orchestrate sequential and parallel work, retain audit and decision history, require human approvals, validate outputs, and explain risks and limitations.</p>
+    <p>Then read <a href="README.md">README.md</a> for the repository's current implementation decisions and setup. The shortener scenario calls for a service with:</p>
+    <ul>
+      <li>An API to create a short link.</li>
+      <li>A redirect from a short code to the original HTTP(S) URL.</li>
+      <li>Per-link analytics, currently click count plus creation and last-access timestamps.</li>
+      <li>Persistent storage, input checks, and safe handling of short-code collisions.</li>
+      <li>Reliability considerations and explicit documentation of unspecified production requirements.</li>
+    </ul>
+    <h3>A practical requirement-reading checklist</h3>
+    <ol>
+      <li><strong>Extract actions and users.</strong> What should an API caller be able to create, retrieve, or observe?</li>
+      <li><strong>Turn nouns into data.</strong> A link has a short code, target URL, creation time, click count, and last access time.</li>
+      <li><strong>Write observable behavior.</strong> For example, a valid create request returns a short URL; visiting its code redirects and increments the count.</li>
+      <li><strong>Identify edge cases.</strong> Invalid schemes, malformed JSON, unknown codes, duplicate codes, large request bodies, and storage errors all need deliberate behavior.</li>
+      <li><strong>Separate requirements from assumptions.</strong> This brief does not set authentication, expiration, analytics retention/privacy, traffic targets, availability objectives, or deployment topology. The prototype documents these rather than pretending they were specified.</li>
+      <li><strong>Make uncertainty visible.</strong> In the ambiguous scenario, the workflow records questions and intentionally withholds service implementation until they are answered.</li>
+    </ol>
+    <p>The scenario definitions live in <a href="agentic_sdlc/scenarios.py">agentic_sdlc/scenarios.py</a>. The repository's overall requirement is in <a href="systemcontext.ini">systemcontext.ini</a>; the product API behavior is also documented in the <a href="README.md">README</a> and described by <a href="schemas/url-shortener.schema.json">the OpenAPI schema</a>.</p>
+  </section>
+
+  <section id="layout">
+    <h2>3. Find your way around the code</h2>
+    <table>
+      <thead><tr><th>Path</th><th>What it contains</th><th>Read it when…</th></tr></thead>
+      <tbody>
+        <tr><td><a href="systemcontext.ini">systemcontext.ini</a></td><td>Project objective, scenario, constraints, deliverables, and evaluation criteria.</td><td>You need the assignment's intent and success criteria.</td></tr>
+        <tr><td><a href="README.md">README.md</a></td><td>Quick setup, commands, architecture summary, service API, safety, and limitations.</td><td>You want a short operational overview.</td></tr>
+        <tr><td><a href="agentic_sdlc/cli.py">agentic_sdlc/cli.py</a></td><td>Command-line arguments, workflow creation/resume, approvals, output location, and exit codes.</td><td>You need to know what a CLI command does.</td></tr>
+        <tr><td><a href="agentic_sdlc/scenarios.py">agentic_sdlc/scenarios.py</a></td><td>Three fixed scenarios, task graph, deterministic stage handlers, validation, and summary generation.</td><td>You are changing scenario requirements or generated proposal content.</td></tr>
+        <tr><td><a href="agentic_sdlc/orchestrator.py">agentic_sdlc/orchestrator.py</a></td><td>Task/state models, dependency execution, approval pause/resume, bounded retries, artifact controls, audit, rollback, and replanning.</td><td>You are changing common workflow behavior.</td></tr>
+        <tr><td><a href="url_shortener/service.py">url_shortener/service.py</a></td><td>WSGI request handling, URL validation, SQLite persistence, redirects, and analytics.</td><td>You are changing service or endpoint behavior.</td></tr>
+        <tr><td><a href="url_shortener/__main__.py">url_shortener/__main__.py</a></td><td>Local server entry point and host/port/database options.</td><td>You are changing how the service starts.</td></tr>
+        <tr><td><a href="schemas/url-shortener.schema.json">schemas/url-shortener.schema.json</a></td><td>OpenAPI 3.1 description of the service routes.</td><td>You change an API contract.</td></tr>
+        <tr><td><a href="tests/test_orchestrator.py">tests/test_orchestrator.py</a> and <a href="tests/test_url_shortener.py">tests/test_url_shortener.py</a></td><td>Workflow governance tests and service API/storage tests.</td><td>You need examples of expected behavior or a regression check.</td></tr>
+        <tr><td><a href="pyproject.toml">pyproject.toml</a></td><td>Python version, build metadata, package discovery, and CLI entry point.</td><td>You change package layout or distribution settings.</td></tr>
+      </tbody>
+    </table>
+    <p>Recommended reading order: this guide → README → scenario definitions → orchestrator → service implementation → relevant tests.</p>
+  </section>
+
+  <section id="workflow">
+    <h2>4. Understand the execution model</h2>
+    <p>The CLI asks <code>build_scenario</code> for a task list, handler functions, and initial context. It creates a <code>WorkflowState</code> and passes both to <code>WorkflowEngine</code>. The engine checks that the dependency graph is valid, then repeatedly runs all ready tasks. A task is ready only when every dependency has succeeded.</p>
+    <pre><code>understand
+    ↓
+decompose
+    ↓
+design
+    ↓
+[human design approval]
+    ↓
+implement
+    ├──→ unit_validation ──┐
+    └──→ documentation ───┴→ integration_validation
+                                  ↓
+                         [human release approval]
+                                  ↓
+                           release_readiness</code></pre>
+    <ol>
+      <li><strong>Understand:</strong> normalizes the scenario requirement, carries known ambiguity, and records available inventory evidence.</li>
+      <li><strong>Decompose:</strong> lists dependent work such as API contract, storage, implementation, tests, documentation, and release review.</li>
+      <li><strong>Design:</strong> records decisions and risks, including safety boundaries and assumptions.</li>
+      <li><strong>Design approval:</strong> pauses before implementation unless explicitly approved.</li>
+      <li><strong>Implement:</strong> emits a proposal. Greenfield packages the service source, tests, and API schema; brownfield emits an inventory-based change plan; ambiguous emits clarification questions and no service code.</li>
+      <li><strong>Parallel branches:</strong> static validation and documentation are independent tasks that can run in the same ready frontier.</li>
+      <li><strong>Integration validation:</strong> waits until both branches finish, then checks stage outputs and required greenfield deliverables.</li>
+      <li><strong>Release approval and readiness:</strong> request human approval, then create the final engineering summary and run metrics.</li>
+    </ol>
+    <h3>State, approvals, and failure handling</h3>
+    <ul>
+      <li>The run state tracks task statuses, outputs, attempts, artifacts, approvals/audit events, context, and timestamps.</li>
+      <li>Unapproved checkpoints save state and return <code>paused_for_approval</code>. Resume loads <code>state.json</code> and continues the same run.</li>
+      <li>Tasks may retry up to their configured attempt limit; implementation also has a fallback handler that produces a manual fallback plan.</li>
+      <li>Artifacts are confined to a task directory under the run directory, checked for unsafe paths and likely inline credentials, and not overwritten.</li>
+      <li>A terminal task or artifact-policy failure emits a safe-stop event and removes generated run artifacts (rollback); it does not undo source files because the workflow never edits them.</li>
+      <li><code>WorkflowEngine.replan()</code> can replace a succeeded upstream output and invalidate that task's descendants, deleting their stale artifacts while leaving unrelated completed branches intact.</li>
+    </ul>
+    <p>Audit events are appended to <code>audit.jsonl</code>. The final summary includes run-level success/retry/rollback metrics, mean recovery time where recovery occurred, and elapsed time at report generation. These are prototype run signals, not fleet-wide reliability statistics.</p>
+  </section>
+
+  <section id="setup">
+    <h2>5. Set up the project and run tests</h2>
+    <p>The project requires Python 3.10 or newer and has no runtime third-party dependencies. From the repository root, open PowerShell or a VS Code terminal:</p>
+    <pre><code>cd C:\Apps\AgenticSWSystem
+python --version
+python -m unittest discover -s tests -v</code></pre>
+    <p>If this project uses its local virtual environment, invoke its interpreter explicitly:</p>
+    <pre><code>.\.venv\Scripts\python.exe -m unittest discover -s tests -v</code></pre>
+    <p>The suite covers both the workflow engine and the URL-shortener service. A successful run ends with <code>OK</code>. Run it again after changes that affect a stage, policy, API, or persistence behavior.</p>
+    <p>Optional: install the project in editable mode to use the registered <code>agentic-sdlc</code> command:</p>
+    <pre><code>python -m pip install -e .
+agentic-sdlc --help</code></pre>
+  </section>
+
+  <section id="scenarios">
+    <h2>6. Run the three workflow scenarios</h2>
+    <p>Run commands from the repository root. The examples use <code>python -m agentic_sdlc</code>, so editable installation is not required.</p>
+    <h3>Greenfield: a new service</h3>
+    <pre><code>python -m agentic_sdlc run --scenario greenfield --approve all</code></pre>
+    <p>This executes both approvals, packages the URL-shortener files into the run artifacts, validates generated Python syntax and JSON parsing, checks stage synchronization, and produces a release-readiness summary. To see the approval gates rather than approve immediately, omit <code>--approve all</code>.</p>
+
+    <h3>Brownfield: reason about an existing workspace</h3>
+    <pre><code>python -m agentic_sdlc run --scenario brownfield --workspace .</code></pre>
+    <p>By default this pauses at design approval. Provide the approval flags up front if you want the full proposal in one invocation:</p>
+    <pre><code>python -m agentic_sdlc run --scenario brownfield --workspace . --approve all</code></pre>
+    <p>The inventory is a bounded scan of up to 500 files, excludes common dependency/build directories, and uses filename keywords to suggest candidate review targets. It is not semantic code analysis and does not edit the selected workspace. Point <code>--workspace</code> at the codebase you want inventoried.</p>
+
+    <h3>Ambiguous: surface questions instead of guessing</h3>
+    <pre><code>python -m agentic_sdlc run --scenario ambiguous --approve all</code></pre>
+    <p>This scenario completes the governance/reporting flow but intentionally does not generate service code. Its release summary is <code>blocked_pending_clarification</code>. Approval of a workflow checkpoint is not approval to ignore unresolved product questions.</p>
+
+    <h3>Pause and resume through approvals</h3>
+    <p>Without approval flags, the initial run stops at design approval. The CLI prints a run ID and run directory. Copy the run ID shown in the output and resume using:</p>
+    <pre><code>python -m agentic_sdlc run --scenario greenfield
+python -m agentic_sdlc resume &lt;run-id&gt; --approve design
+python -m agentic_sdlc resume &lt;run-id&gt; --approve release</code></pre>
+    <p>Replace <code>&lt;run-id&gt;</code> with the printed ID. The run identifier is not literally the text in angle brackets. If you used a custom output folder, pass the same folder to each resume call with <code>--output &lt;folder&gt;</code>. The first paused invocation normally exits with code 2; that is the expected CLI signal for a saved approval pause, not an implementation failure. Completed runs exit 0; failed runs exit 1.</p>
+    <p>You can approve only one checkpoint at a time or both up front: repeat <code>--approve</code> as needed, for example <code>--approve design --approve release</code>, or use <code>--approve all</code>.</p>
+  </section>
+
+  <section id="service">
+    <h2>7. Run and use the URL shortener</h2>
+    <p>The standalone service is separate from the workflow CLI. Start it in one terminal:</p>
+    <pre><code>python -m url_shortener</code></pre>
+    <p>It uses Python's built-in WSGI server, listens on <code>127.0.0.1:8000</code> by default, and creates a local <code>url-shortener.sqlite3</code> database. The server is for local development, not a production deployment.</p>
+    <p>Create a short link from another PowerShell window:</p>
+    <pre><code>$created = Invoke-RestMethod `
+  -Method Post `
+  -Uri http://127.0.0.1:8000/api/urls `
+  -ContentType 'application/json' `
+  -Body '{"url":"https://example.com/docs"}'
+$created</code></pre>
+    <p>Use the returned <code>short_url</code> in a browser or HTTP client. Each GET to the short URL returns a redirect and records a click. Read analytics using the returned code:</p>
+    <pre><code>Invoke-RestMethod `
+  -Method Get `
+  -Uri "http://127.0.0.1:8000/api/urls/$($created.code)/stats"</code></pre>
+    <table>
+      <thead><tr><th>Method and route</th><th>Purpose</th><th>Typical response</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST /api/urls</code></td><td>Create a short URL. Send JSON with only a <code>url</code> field; the destination must be a valid absolute HTTP(S) URL.</td><td><code>201 Created</code> with code, short URL, target, and creation time.</td></tr>
+        <tr><td><code>GET /{code}</code></td><td>Redirect to the original destination and increment click count.</td><td><code>302 Found</code> with a <code>Location</code> header; <code>404</code> for unknown/invalid codes.</td></tr>
+        <tr><td><code>GET /api/urls/{code}/stats</code></td><td>Read per-link click analytics.</td><td><code>200 OK</code> with target, created time, clicks, last access; <code>404</code> if missing.</td></tr>
+        <tr><td><code>GET /health</code></td><td>Basic process health check.</td><td><code>200 OK</code> with <code>{"status":"ok"}</code>.</td></tr>
+      </tbody>
+    </table>
+    <p>To change its local settings:</p>
+    <pre><code>python -m url_shortener --host 127.0.0.1 --port 8080 --database .\data\urls.sqlite3</code></pre>
+    <p>The same settings can be supplied through <code>URL_SHORTENER_HOST</code>, <code>URL_SHORTENER_PORT</code>, and <code>URL_SHORTENER_DB</code>.</p>
+  </section>
+
+  <section id="outputs">
+    <h2>8. Read a workflow run's outputs</h2>
+    <p>By default, each run is stored in <code>.agentic-runs/&lt;run-id&gt;/</code>. The CLI prints the actual location. A completed run contains:</p>
+    <ul>
+      <li><code>state.json</code> — resumable workflow state, stage results, statuses, attempts, and artifact index.</li>
+      <li><code>audit.jsonl</code> — append-only event records with timestamps, task transitions, approval events, retry/fallback outcomes, and safe-stop/rollback information where applicable.</li>
+      <li><code>artifacts/understand/</code>, <code>artifacts/decompose/</code>, <code>artifacts/design/</code>, etc. — files produced by each stage.</li>
+      <li><code>artifacts/implement/</code> — greenfield service code/tests/schema, brownfield plan/contract, or ambiguous clarification documents.</li>
+      <li><code>artifacts/release_readiness/engineering-summary.md</code> and <code>engineering-summary.json</code> — decisions, risks, validation, limitations, release status, and run metrics.</li>
+    </ul>
+    <p>Artifacts are generated proposals, not files installed into your application or applied to the workspace. Review them and run their tests separately before adopting any change.</p>
+  </section>
+
+  <section id="change">
+    <h2>9. Make a change safely</h2>
+    <ol>
+      <li><strong>State the behavior you intend to change.</strong> Identify the relevant requirement, API response, workflow stage, or policy rule.</li>
+      <li><strong>Read the producer and its tests.</strong> For service changes, inspect <code>url_shortener/service.py</code> and <code>tests/test_url_shortener.py</code>. For scenario/workflow changes, inspect <code>agentic_sdlc/scenarios.py</code>, <code>agentic_sdlc/orchestrator.py</code>, and <code>tests/test_orchestrator.py</code>.</li>
+      <li><strong>Update the contract and documentation together.</strong> If a route or payload changes, update the OpenAPI schema and README/guides as appropriate.</li>
+      <li><strong>Add or adjust focused tests.</strong> Cover the success path, invalid input, not-found cases, and relevant failure/reliability behavior.</li>
+      <li><strong>Run the complete suite.</strong> Use <code>python -m unittest discover -s tests -v</code>.</li>
+      <li><strong>Exercise the matching workflow scenario.</strong> For example, run greenfield after changing emitted implementation artifacts, or brownfield after changing inventory/proposal behavior.</li>
+      <li><strong>Inspect artifacts and audit output.</strong> Confirm content is correctly scoped, no source was unexpectedly changed, approvals remain in the intended order, and summary risks are accurate.</li>
+    </ol>
+    <p>When changing common orchestration behavior, retain the core guarantees: validated dependency graph, explicit approvals, bounded retries, artifact path and credential checks, durable pause/resume state, audit events, and safe-stop/rollback behavior.</p>
+  </section>
+
+  <section id="limits">
+    <h2>10. Know the boundaries and next questions</h2>
+    <ul>
+      <li>The scenario handlers are deterministic fixtures, not autonomous model agents.</li>
+      <li>Brownfield reasoning is based on a bounded filename inventory, not symbol or call-graph analysis.</li>
+      <li>Generated Python is syntax-parsed and generated JSON is parsed; the orchestrator does not execute generated code. Run tests separately in a suitable environment.</li>
+      <li>The workflow's JSON state store is intended for a prototype and is not safe as a multi-process shared database. There is no distributed queue or deployment integration.</li>
+      <li>The service uses SQLite for a local single-instance prototype. It does not define production capacity, high availability, backups, migrations, or rate limiting.</li>
+      <li>The statistics API currently exposes target URLs and click counts without authentication. Use only in a trusted environment until access control and privacy needs are specified.</li>
+      <li>Authentication, link expiry, deletion, analytics retention, privacy requirements, redirect latency, traffic profile, and availability objectives are open product/operational decisions.</li>
+      <li>The WSGI development server is not a production server. Production deployment needs a deployment/runtime design, security review, observability, and operational testing.</li>
+    </ul>
+    <p>Use the ambiguous scenario and final summary to record such questions rather than silently choosing production behavior. Humans remain responsible for design and release approvals.</p>
+  </section>
+
+  <footer>
+    <p>Maintainer note: keep this guide aligned with the CLI, scenario graph, service API, tests, and README whenever those interfaces change.</p>
+  </footer>
+</main>
+</body>
+</html>

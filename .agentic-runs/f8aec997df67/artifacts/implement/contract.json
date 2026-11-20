@@ -1,0 +1,4 @@
+{
+  "operation": "URL shortener analytics",
+  "compatibility": "preserve existing routes and response formats; confirm before change"
+}

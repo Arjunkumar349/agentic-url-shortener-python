@@ -1,0 +1,36 @@
+{
+  "scenario": "brownfield",
+  "requirement": "Extend an existing URL shortener with analytics without breaking current behavior.",
+  "decisions": [
+    "Keep generated changes in a run-scoped artifact directory; never edit the target workspace automatically.",
+    "Run test and documentation work as independent branches, then synchronize before release review.",
+    "Use explicit human approval before implementation and release readiness.",
+    "Use a bounded file inventory as evidence; file impact suggestions are heuristic, not semantic analysis.",
+    "Record unresolved product decisions as assumptions and block claims of production readiness."
+  ],
+  "risks": [
+    "The existing public API and analytics compatibility requirements are not specified."
+  ],
+  "validation": {
+    "result": "passed",
+    "synchronized_branches": [
+      "unit_validation",
+      "documentation"
+    ],
+    "all_required_stages_present": true
+  },
+  "limitations": [
+    "Deterministic fixture agents; no LLM or external tools are invoked.",
+    "Generated artifacts require human review; no automatic workspace mutation."
+  ],
+  "release_status": "blocked_pending_clarification",
+  "metrics": {
+    "completed_task_success_rate": 1.0,
+    "retry_count": 0,
+    "retry_frequency": 0.0,
+    "rollback_count": 0,
+    "rollback_frequency": 0.0,
+    "mttr_seconds": null,
+    "end_to_end_latency_seconds_at_report": 0.063486
+  }
+}
